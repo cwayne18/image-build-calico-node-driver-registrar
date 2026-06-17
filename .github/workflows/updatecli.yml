@@ -1,0 +1,38 @@
+name: "Updatecli: Dependency Management"
+
+on:
+  schedule:
+    # Runs at 06 PM UTC
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  updatecli:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+
+      - name: Install Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
+        with:
+          go-version: 'stable'
+
+      - name: Install Updatecli
+        uses: updatecli/updatecli-action@4b17f4ea784de29f71f85f9bc4955402ba1ae53c # v2.100.0
+        with:
+          version: v0.110.2
+
+      - name: Apply Updatecli
+        run: "updatecli apply --clean --config ./updatecli/updatecli.d/ --values ./updatecli/values.yaml"
+        env:
+          UPDATECLI_GITHUB_ACTOR: ${{ github.actor }}
+          UPDATECLI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

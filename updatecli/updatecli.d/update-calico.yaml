@@ -1,0 +1,48 @@
+---
+name: "Update calico version"
+
+sources:
+  upstream:
+    name: Get calico version
+    kind: githubrelease
+    spec:
+      owner: projectcalico
+      repository: calico
+      token: '{{ requiredEnv .github.token }}'
+      typefilter:
+        release: true
+        draft: false
+        prerelease: false
+      versionfilter:
+        kind: semver
+
+targets:
+  makefile:
+    name: "Bump to latest calico version in Makefile"
+    kind: file
+    scmid: default
+    disablesourceinput: true
+    spec:
+      file: Makefile
+      matchpattern: '(?m)^TAG \:\= (.*)'
+      replacepattern: 'TAG := {{ source "upstream" }}$$(BUILD_META)'
+
+scms:
+  default:
+    kind: github
+    spec:
+      token: '{{ requiredEnv .github.token }}'
+      username: '{{ .github.username }}'
+      user: '{{ .github.username }}'
+      email: '{{ .github.email }}'
+      owner: '{{ .github.owner }}'
+      repository: '{{ .github.repository }}'
+      branch: '{{ .github.branch }}'
+
+actions:
+  default:
+    title: 'Bump calico version to {{ source "upstream" }}'
+    kind: github/pullrequest
+    spec:
+      automerge: false
+    scmid: default
