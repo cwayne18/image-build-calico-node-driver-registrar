@@ -24,9 +24,16 @@ jobs:
     - name: Build hardened image(s)
       run: make build-image-all
 
-    - name: Install Trivy
+    - name: Resolve image tag
       run: |
-        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/v0.58.1/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.58.1
+        eval "$(make -s log | grep -E '^(TAG|BUILD_META)=')"
+        echo "IMG_TAG=${TAG}${BUILD_META}" >> "$GITHUB_ENV"
 
     - name: Run Trivy vulnerability scanner
-      run: make image-scan
+      uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+      with:
+        image-ref: ghcr.io/cwayne18/hardened-calico-node-driver-registrar:${{ env.IMG_TAG }}
+        format: table
+        exit-code: '0'
+        ignore-unfixed: true
+        severity: HIGH,CRITICAL
