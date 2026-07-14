@@ -1,0 +1,20 @@
+version: 2
+updates:
+
+  # Maintain dependencies for GitHub Actions
+  # Runs on the 5th of each month (week before releases), grouped and ignores patch updates to avoid noise
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "cron"
+      cronjob: "0 0 5 * *"
+    groups:
+      action-deps:
+        patterns:
+          - "*"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-patch"
+    reviewers:
+      - "rancher/k3s"

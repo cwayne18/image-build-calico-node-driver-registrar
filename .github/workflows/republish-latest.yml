@@ -1,0 +1,40 @@
+# This workflow triggers on any Dockerfile changes that occur on main.
+# 99% of the time, from an UpdateCLI PR merging that bumps the base image.
+name: Republish Latest
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Dockerfile'
+  workflow_dispatch:
+
+permissions:
+    contents: write
+    id-token: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Read Secrets"
+        uses: rancher-eio/read-vault-secrets@0da85151ad1f19ed7986c41587e45aac1ace74b6 # v3
+        with:
+          secrets: |
+            secret/data/github/repo/${{ github.repository }}/github/rancher-release-team-auto-tagger/app-credentials appId | APP_ID ;
+            secret/data/github/repo/${{ github.repository }}/github/rancher-release-team-auto-tagger/app-credentials privateKey | PRIVATE_KEY
+
+      - name: Generate GitHub App token
+        id: generate-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ env.APP_ID }}
+          private-key: ${{ env.PRIVATE_KEY }}
+
+      - name: Republish Latest Release
+        uses: rancher/ecm-distro-tools/actions/republish-latest@49656efa72e90062a70fac1a85ad121f4873a6a0 # v0.74.4
+        with:
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          commitish: 'main'
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
