@@ -1,4 +1,4 @@
-ARG GO_IMAGE=rancher/hardened-build-base:v1.26.5b1
+ARG GO_IMAGE=rancher/hardened-build-base:v1.26.5b2
 ARG BCI_IMAGE=registry.suse.com/bci/bci-nano:16.0
 
 # Image that provides cross compilation tooling.
